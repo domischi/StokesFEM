@@ -18,23 +18,27 @@ def solve_rectangle(_config):
     W = FunctionSpace(mesh, TH) ## on the mesh
 
 # Boundaries
-    def diagonal_to_center_ur(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width and x[0]>0 and x[1]>0 and x[0]< 1 and x[1]< AR ## upper right quadrant
-    def diagonal_to_center_ul(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width and x[0]<0 and x[1]>0 and x[0]>-1 and x[1]< AR ## upper left  quadrant
-    def diagonal_to_center_dr(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width and x[0]>0 and x[1]<0 and x[0]< 1 and x[1]>-AR ## down  right quadrant
-    def diagonal_to_center_dl(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width and x[0]<0 and x[1]<0 and x[0]>-1 and x[1]>-AR ## down  left  quadrant
+    def diagonal_ur(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width and x[0]>0 and x[1]>0 and x[0]< 1 and x[1]< AR ## upper right quadrant
+    def diagonal_ul(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width and x[0]<0 and x[1]>0 and x[0]>-1 and x[1]< AR ## upper left  quadrant
+    def diagonal_dr(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width and x[0]>0 and x[1]<0 and x[0]< 1 and x[1]>-AR ## down  right quadrant
+    def diagonal_dl(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width and x[0]<0 and x[1]<0 and x[0]>-1 and x[1]>-AR ## down  left  quadrant
+    def left_right(x, on_boundary): return x[0] > L - DOLFIN_EPS or x[0] < -L+DOLFIN_EPS
+    def top_bottom(x, on_boundary): return x[1] > L - DOLFIN_EPS or x[1] < -L+DOLFIN_EPS
 
     velocity_to_center = Expression(("-x[0]", "-x[1]"), degree=2)
-    bc0 = DirichletBC(W.sub(0), velocity_to_center, diagonal_to_center_ur)
-    bc1 = DirichletBC(W.sub(0), velocity_to_center, diagonal_to_center_ul)
-    bc2 = DirichletBC(W.sub(0), velocity_to_center, diagonal_to_center_dr)
-    bc3 = DirichletBC(W.sub(0), velocity_to_center, diagonal_to_center_dl)
+    bcs = []
+    bcs.append(DirichletBC(W.sub(0), velocity_to_center, diagonal_ur))
+    bcs.append(DirichletBC(W.sub(0), velocity_to_center, diagonal_ul))
+    bcs.append(DirichletBC(W.sub(0), velocity_to_center, diagonal_dr))
+    bcs.append(DirichletBC(W.sub(0), velocity_to_center, diagonal_dl))
 
-    # No-slip boundary condition for velocity
-    #noslip = Constant((0.0, 0.0, 0.0))
-    #bc0 = DirichletBC(W.sub(0), noslip, top_bottom)
-
-    # Collect boundary conditions
-    bcs = [bc0, bc1, bc2, bc3]
+    # No-slip boundary conditions
+    if _config['no_slip_top_bottom']:
+        noslip = Constant((0.0, 0.0))
+        bcs.append(DirichletBC(W.sub(0), noslip, top_bottom))
+    if _config['no_slip_left_right']:
+        noslip = Constant((0.0, 0.0))
+        bcs.append(DirichletBC(W.sub(0), noslip, left_right))
 
     # Define variational problem
     (u, p) = TrialFunctions(W)

@@ -29,6 +29,10 @@ def cfg():
     bar_width=.1
     krylov_method = "minres" ## alternatively use tfqrm
 
+    ## Boundary
+    no_slip_top_bottom = False
+    no_slip_left_right = False
+
     ## Fluid parameters
     mu=1. ## TODO use it in the integrator
 
