@@ -37,8 +37,12 @@ def cfg():
     ## Fluid parameters
     mu=1. ## TODO use it in the integrator
 
+    ## Plotting parameters
+    plot_res = 32
+    plot_type = 'quiver'
+
 
 @ex.automain
 def main(_config):
     u, p = solve_rectangle(_config)
-    plot_fluid(u, L=_config['L'], plot_type='quiver')
+    plot_fluid(u, _config)
