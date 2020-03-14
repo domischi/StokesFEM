@@ -3,14 +3,14 @@ import mshr
 import sys
 from capture_cpp_cout import capture_cpp_cout
 
-AR = 1.
-L = 3
-res = 50
 bar_width=.1
-krylov_method = "minres" ## alternatively use tfqrm
 
-def solve_rectangle(AR, L, res, bar_width):
-    mesh = RectangleMesh(Point(-L,-L),Point(L,L), res,res, 'left/right')
+def solve_rectangle(_config):
+    AR = _config['AR']
+    L = _config['L']
+    bar_width = _config['bar_width']
+
+    mesh = RectangleMesh(Point(-L,-L),Point(L,L), _config['res'], _config['res'], 'left/right')
 #mesh = mshr.generate_mesh(mshr.Rectangle(Point(-L,-L),Point(L,L)), res)
 
 # Build function space
@@ -63,7 +63,7 @@ def solve_rectangle(AR, L, res, bar_width):
             print(outstring)
 
 # Create Krylov solver and AMG preconditioner
-    solver = KrylovSolver(krylov_method, "amg")
+    solver = KrylovSolver(_config['krylov_method'], "amg")
 
 # Associate operator (A) and preconditioner matrix (P)
     solver.set_operators(A, P)

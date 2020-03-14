@@ -23,7 +23,7 @@ def cfg():
     L = 3
     res = 50
     bar_width=.1
-    krylov_method = "minres" ## alternatively use tfqrm ## TODO use it in the integrator
+    krylov_method = "minres" ## alternatively use tfqrm
 
     ## Fluid parameters
     mu=1. ## TODO use it in the integrator
@@ -31,9 +31,5 @@ def cfg():
 
 @ex.automain
 def main(_config):
-    AR = _config['AR']
-    L = _config['L']
-    res = _config['res']
-    bar_width = _config['bar_width']
-    u, p = solve_rectangle(AR,L,res,bar_width)
-    plot_fluid(u, L=L, plot_type='quiver')
+    u, p = solve_rectangle(_config)
+    plot_fluid(u, L=_config['L'], plot_type='quiver')
