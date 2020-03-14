@@ -41,6 +41,8 @@ def cfg():
     plot_res = 32
     plot_type = 'quiver'
     color_scheme = 'io'
+    plot_rectangle = True
+    plot_cross = True
 
 
 @ex.automain

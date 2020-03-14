@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from rectangle import cross, active_rect
 
 def get_io_colors(X,Y, U,V, _config):
     C = U*X+V*Y
@@ -10,11 +11,29 @@ def get_io_colors(X,Y, U,V, _config):
         C = [r/mi if r<0 else r/mx for r in C]
     return C
 
+def get_domain(f,X,Y, _config):
+    ind=np.zeros_like(X)
+    for i in range(len(X)):
+        for j in range(len(X[0])):
+            if f((X[i,j], Y[i,j]), False, _config['AR'], _config['bar_width']):
+                ind[i,j]=1
+    return ind
+
 def plot_fluid(u,_config, fix_frame=True):
     L = _config['L']
     plt.figure(figsize=(5,5))
     plt.title('Fluids')
     X, Y = np.meshgrid(np.linspace(-L,L,_config['plot_res']),np.linspace(-L,L,_config['plot_res']))
+    if _config['plot_rectangle']:
+        resb = 128
+        Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
+        ind=get_domain(active_rect, Xb,Yb, _config)
+        plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
+    if _config['plot_cross']:
+        resb = 128
+        Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
+        ind=get_domain(cross, Xb,Yb, _config)
+        plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
     U = np.zeros_like(X)
     V = np.zeros_like(Y)
     C = np.ones_like(Y)
