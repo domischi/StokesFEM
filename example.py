@@ -13,6 +13,7 @@ import sys
 
 ex = Experiment('Diagonal FEM')
 ex.observers.append(MongoObserver.create())
+SETTINGS.CONFIG.READ_ONLY_CONFIG = False ## Needed if the mesh needs to be refined to define BC
 SETTINGS.CAPTURE_MODE = 'sys'
 ex.captured_out_filter = apply_backspaces_and_linefeeds
 

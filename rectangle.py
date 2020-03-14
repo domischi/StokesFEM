@@ -4,6 +4,9 @@ import sys
 from capture_cpp_cout import capture_cpp_cout
 
 def solve_rectangle(_config):
+    if _config['res']>80:
+        print('There is probably something wrong, calling solve_rectangle with a resolution above 200... Exiting')
+        sys.exit()
     AR = _config['AR']
     L = _config['L']
     bar_width = _config['bar_width']
@@ -58,8 +61,9 @@ def solve_rectangle(_config):
         outstring = outstring1 if len(outstring1)>=len(outstring2) else outstring2
         del outstring1,outstring2
         if "Warning: Found no facets matching domain for boundary condition." in outstring:
-            print("Boundary conditions broke. There are no nodes inside the Dirichlet boundary region.")
-            sys.exit()
+            _config['res'] += 10
+            print(f"Boundary conditions cannot be implemented. Retrying with a higher res (res={_config['res']})")
+            return solve_rectangle(_config)
         else:
             print('There was an error in assemble_system. The output of FeniCS:')
             print(outstring)
