@@ -3,6 +3,7 @@ from dolfin import *
 import mshr
 import sys
 from illustration import plot_fluid
+from capture_cpp_cout import capture_cpp_cout
 import numpy as np
 import sys
 
@@ -51,10 +52,18 @@ l = inner(f, v)*dx
 b = inner(grad(u), grad(v))*dx + p*q*dx
 
 # Assemble system
-A, bb = assemble_system(a, l, bcs)
-
-# Assemble preconditioner system
-P, btmp = assemble_system(b, l, bcs)
+(A, bb),   outstring1 = capture_cpp_cout(lambda : assemble_system(a, l, bcs))
+(P, btmp), outstring2 = capture_cpp_cout(lambda : assemble_system(b, l, bcs))
+if len(outstring1) > 0 or len(outstring2)>0:
+    print('There was an issue in the assemble_system function:')
+    outstring = outstring1 if len(outstring1)>=len(outstring2) else outstring2
+    del outstring1,outstring2
+    if "Warning: Found no facets matching domain for boundary condition." in outstring:
+        print("Boundary conditions broke. There are no nodes inside the Dirichlet boundary region.")
+        sys.exit()
+    else:
+        print('There was an error in assemble_system. The output of FeniCS:')
+        print(outstring)
 
 # Create Krylov solver and AMG preconditioner
 solver = KrylovSolver(krylov_method, "amg")
