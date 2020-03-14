@@ -3,6 +3,13 @@ import mshr
 import sys
 from capture_cpp_cout import capture_cpp_cout
 
+def active_rect(x, on_boundary, AR, bar_width): return x[0]>-1 and x[0]< 1 and x[1]>-AR and x[1]<AR
+def diagonal_up(x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width ## rising diagonal
+def diagonal_dw(x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width ## lowering diagonal
+def cross      (x, on_boundary, AR, bar_width): return active_rect(x, on_boundary, AR, bar_width) and (diagonal_up(x, on_boundary, AR, bar_width) or diagonal_dw(x, on_boundary, AR, bar_width))
+def left_right (x, on_boundary, AR, bar_width): return x[0] > L - DOLFIN_EPS or x[0] < -L+DOLFIN_EPS
+def top_bottom (x, on_boundary, AR, bar_width): return x[1] > L - DOLFIN_EPS or x[1] < -L+DOLFIN_EPS
+
 def solve_rectangle(_config):
     if _config['res']>80:
         print('There is probably something wrong, calling solve_rectangle with a resolution above 200... Exiting')
@@ -20,20 +27,10 @@ def solve_rectangle(_config):
     TH = P2 * P1 ## Taylor-Hood elements
     W = FunctionSpace(mesh, TH) ## on the mesh
 
-# Boundaries
-    def diagonal_ur(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width and x[0]>0 and x[1]>0 and x[0]< 1 and x[1]< AR ## upper right quadrant
-    def diagonal_ul(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width and x[0]<0 and x[1]>0 and x[0]>-1 and x[1]< AR ## upper left  quadrant
-    def diagonal_dr(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width and x[0]>0 and x[1]<0 and x[0]< 1 and x[1]>-AR ## down  right quadrant
-    def diagonal_dl(x, on_boundary): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width and x[0]<0 and x[1]<0 and x[0]>-1 and x[1]>-AR ## down  left  quadrant
-    def left_right(x, on_boundary): return x[0] > L - DOLFIN_EPS or x[0] < -L+DOLFIN_EPS
-    def top_bottom(x, on_boundary): return x[1] > L - DOLFIN_EPS or x[1] < -L+DOLFIN_EPS
-
+    # Boundaries
     velocity_to_center = Expression(("-x[0]", "-x[1]"), degree=2)
     bcs = []
-    bcs.append(DirichletBC(W.sub(0), velocity_to_center, diagonal_ur))
-    bcs.append(DirichletBC(W.sub(0), velocity_to_center, diagonal_ul))
-    bcs.append(DirichletBC(W.sub(0), velocity_to_center, diagonal_dr))
-    bcs.append(DirichletBC(W.sub(0), velocity_to_center, diagonal_dl))
+    bcs.append(DirichletBC(W.sub(0), velocity_to_center, lambda x, on_boundary: cross(x, on_boundary, AR, bar_width)))
 
     # No-slip boundary conditions
     if _config['no_slip_top_bottom']:
