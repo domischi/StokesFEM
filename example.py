@@ -40,6 +40,7 @@ def cfg():
     ## Plotting parameters
     plot_res = 32
     plot_type = 'quiver'
+    color_scheme = 'io'
 
 
 @ex.automain
