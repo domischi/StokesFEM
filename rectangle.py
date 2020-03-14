@@ -14,8 +14,8 @@ def solve_rectangle(_config):
 #mesh = mshr.generate_mesh(mshr.Rectangle(Point(-L,-L),Point(L,L)), res)
 
 # Build function space
-    P2 = VectorElement("Lagrange", mesh.ufl_cell(), 2) ## For the velocity
-    P1 = FiniteElement("Lagrange", mesh.ufl_cell(), 1) ## For the pressure
+    P2 = VectorElement("Lagrange", mesh.ufl_cell(), _config['degree_fem_velocity']) ## For the velocity
+    P1 = FiniteElement("Lagrange", mesh.ufl_cell(), _config['degree_fem_pressure']) ## For the pressure
     TH = P2 * P1 ## Taylor-Hood elements
     W = FunctionSpace(mesh, TH) ## on the mesh
 
@@ -31,24 +31,24 @@ def solve_rectangle(_config):
     bc2 = DirichletBC(W.sub(0), velocity_to_center, diagonal_to_center_dr)
     bc3 = DirichletBC(W.sub(0), velocity_to_center, diagonal_to_center_dl)
 
-# No-slip boundary condition for velocity
-#noslip = Constant((0.0, 0.0, 0.0))
-#bc0 = DirichletBC(W.sub(0), noslip, top_bottom)
+    # No-slip boundary condition for velocity
+    #noslip = Constant((0.0, 0.0, 0.0))
+    #bc0 = DirichletBC(W.sub(0), noslip, top_bottom)
 
-# Collect boundary conditions
+    # Collect boundary conditions
     bcs = [bc0, bc1, bc2, bc3]
 
-# Define variational problem
+    # Define variational problem
     (u, p) = TrialFunctions(W)
     (v, q) = TestFunctions(W)
     f = Constant((0.0, 0.0))
     a = inner(grad(u), grad(v))*dx + div(v)*p*dx + q*div(u)*dx
     l = inner(f, v)*dx
 
-# Form for use in constructing preconditioner matrix
+    # Form for use in constructing preconditioner matrix
     b = inner(grad(u), grad(v))*dx + p*q*dx
 
-# Assemble system
+    # Assemble system
     (A, bb),   outstring1 = capture_cpp_cout(lambda : assemble_system(a, l, bcs))
     (P, btmp), outstring2 = capture_cpp_cout(lambda : assemble_system(b, l, bcs))
     if len(outstring1) > 0 or len(outstring2)>0:
@@ -62,16 +62,16 @@ def solve_rectangle(_config):
             print('There was an error in assemble_system. The output of FeniCS:')
             print(outstring)
 
-# Create Krylov solver and AMG preconditioner
+    # Create Krylov solver and AMG preconditioner
     solver = KrylovSolver(_config['krylov_method'], "amg")
 
-# Associate operator (A) and preconditioner matrix (P)
+    # Associate operator (A) and preconditioner matrix (P)
     solver.set_operators(A, P)
 
-# Solve
+    # Solve
     U = Function(W)
     solver.solve(U.vector(), bb)
 
-# Get sub-functions
+    # Get sub-functions
     u, p = U.split()
     return u,p
