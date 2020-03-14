@@ -1,6 +1,9 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from rectangle import cross, active_rect
+import time
 
 def get_io_colors(X,Y, U,V, _config):
     C = U*X+V*Y
@@ -20,9 +23,10 @@ def get_domain(f,X,Y, _config):
     return ind
 
 def plot_fluid(u,_config, fix_frame=True):
-    L = _config['L']
-    plt.figure(figsize=(5,5))
+    fig = plt.figure(figsize=(5,5))
     plt.title('Fluids')
+    L = _config['L']
+    filename = f'/tmp/fem-res-{int(time.time())}.png'
     X, Y = np.meshgrid(np.linspace(-L,L,_config['plot_res']),np.linspace(-L,L,_config['plot_res']))
     if _config['plot_rectangle']:
         resb = 128
@@ -61,4 +65,6 @@ def plot_fluid(u,_config, fix_frame=True):
     if fix_frame:
         plt.xlim([-L,L])
         plt.ylim([-L,L])
-    plt.show(block=True)
+    plt.savefig(filename)
+    plt.close(fig)
+    return filename

@@ -48,4 +48,5 @@ def cfg():
 @ex.automain
 def main(_config):
     u, p = solve_rectangle(_config)
-    plot_fluid(u, _config)
+    filename = plot_fluid(u, _config)
+    ex.add_artifact(filename)
