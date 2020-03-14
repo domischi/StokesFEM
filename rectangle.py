@@ -3,8 +3,6 @@ import mshr
 import sys
 from capture_cpp_cout import capture_cpp_cout
 
-bar_width=.1
-
 def solve_rectangle(_config):
     AR = _config['AR']
     L = _config['L']
