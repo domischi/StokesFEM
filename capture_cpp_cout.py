@@ -21,5 +21,8 @@ def capture_cpp_cout(f):
             return out
 
     ret = f()
+    ret_txt = read_pipe()
     os.dup2(stdout, 1)
-    return ret,read_pipe()
+    os.close(pipe_out)
+    os.close(pipe_in)
+    return ret, ret_txt
