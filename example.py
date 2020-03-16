@@ -3,9 +3,11 @@ from sacred import Experiment, SETTINGS
 from sacred.observers import FileStorageObserver, MongoObserver
 from sacred.utils import apply_backspaces_and_linefeeds
 from dolfin import *
+import pickle as pkl
 import mshr
 import sys
-from illustration import plot_fluid
+import time
+from illustration import sample_velocity, plot_fluid
 from capture_cpp_cout import capture_cpp_cout
 from rectangle import solve_rectangle
 import numpy as np
@@ -44,9 +46,18 @@ def cfg():
     plot_rectangle = True
     plot_cross = True
 
+    ## Saving behavior
+    save_sampled_fluid_field = True
+
 
 @ex.automain
 def main(_config):
     u, p = solve_rectangle(_config)
-    filename = plot_fluid(u, _config)
-    ex.add_artifact(filename)
+    vals = sample_velocity(u, _config)
+    if _config['save_sampled_fluid_field']:
+        pickle_filename = f'/tmp/fem-vals-{int(time.time())}.pkl'
+        with open(pickle_filename, 'wb') as f:
+            pkl.dump(vals,f)
+        ex.add_artifact(pickle_filename)
+    figure_filename = plot_fluid(u, _config, already_sampled_values=vals)
+    ex.add_artifact(figure_filename)

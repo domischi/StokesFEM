@@ -22,12 +22,23 @@ def get_domain(f,X,Y, _config):
                 ind[i,j]=1
     return ind
 
-def plot_fluid(u,_config, fix_frame=True):
+def sample_velocity(u, _config):
+    L = _config['L']
+    X, Y = np.meshgrid(np.linspace(-L,L,_config['plot_res']),np.linspace(-L,L,_config['plot_res']))
+    U = np.zeros_like(X)
+    V = np.zeros_like(Y)
+    for i in range(len(X)):
+        for j in range(len(X[0])):
+            uv = u(X[i,j],Y[i,j])
+            U[i,j]=uv[0]
+            V[i,j]=uv[1]
+    return X,Y,U,V
+
+def plot_fluid(u,_config, already_sampled_values = None, fix_frame=True):
     fig = plt.figure(figsize=(5,5))
     plt.title('Fluids')
-    L = _config['L']
     filename = f'/tmp/fem-res-{int(time.time())}.png'
-    X, Y = np.meshgrid(np.linspace(-L,L,_config['plot_res']),np.linspace(-L,L,_config['plot_res']))
+    L = _config['L']
     if _config['plot_rectangle']:
         resb = 128
         Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
@@ -38,15 +49,12 @@ def plot_fluid(u,_config, fix_frame=True):
         Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
         ind=get_domain(cross, Xb,Yb, _config)
         plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
-    U = np.zeros_like(X)
-    V = np.zeros_like(Y)
+    if already_sampled_values == None:
+        X, Y, U, V = sample_velocity(u, _config)
+    else:
+        X, Y, U, V = already_sampled_values
     C = np.ones_like(Y)
     C[0,0]=0
-    for i in range(len(X)):
-        for j in range(len(X[0])):
-            uv = u(X[i,j],Y[i,j])
-            U[i,j]=uv[0]
-            V[i,j]=uv[1]
     if _config['color_scheme']=='io':
         C = get_io_colors(X,Y, U,V, _config)
         cmap = 'bwr'
