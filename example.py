@@ -35,6 +35,7 @@ def cfg():
     ## Boundary
     no_slip_top_bottom = False
     no_slip_left_right = False
+    no_slip_center_size = .2
 
     ## Fluid parameters
     mu=1.
