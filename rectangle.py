@@ -7,8 +7,8 @@ def active_rect(x, on_boundary, AR, bar_width): return x[0]>-1 and x[0]< 1 and x
 def diagonal_up(x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width ## rising diagonal
 def diagonal_dw(x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width ## lowering diagonal
 def cross      (x, on_boundary, AR, bar_width): return active_rect(x, on_boundary, AR, bar_width) and (diagonal_up(x, on_boundary, AR, bar_width) or diagonal_dw(x, on_boundary, AR, bar_width))
-def left_right (x, on_boundary, AR, bar_width): return x[0] > L - DOLFIN_EPS or x[0] < -L+DOLFIN_EPS
-def top_bottom (x, on_boundary, AR, bar_width): return x[1] > L - DOLFIN_EPS or x[1] < -L+DOLFIN_EPS
+def left_right (x, on_boundary, L            ): return x[0] > L - DOLFIN_EPS or x[0] < -L+DOLFIN_EPS
+def top_bottom (x, on_boundary, L            ): return x[1] > L - DOLFIN_EPS or x[1] < -L+DOLFIN_EPS
 
 def solve_rectangle(_config):
     if _config['res']>80:
@@ -35,10 +35,10 @@ def solve_rectangle(_config):
     # No-slip boundary conditions
     if _config['no_slip_top_bottom']:
         noslip = Constant((0.0, 0.0))
-        bcs.append(DirichletBC(W.sub(0), noslip, top_bottom))
+        bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: top_bottom(x, on_boundary, L)))
     if _config['no_slip_left_right']:
         noslip = Constant((0.0, 0.0))
-        bcs.append(DirichletBC(W.sub(0), noslip, left_right))
+        bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: left_right(x, on_boundary, L)))
 
     # Define variational problem
     (u, p) = TrialFunctions(W)
