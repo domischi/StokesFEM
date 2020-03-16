@@ -35,7 +35,7 @@ def cfg():
     no_slip_left_right = False
 
     ## Fluid parameters
-    mu=1. ## TODO use it in the integrator
+    mu=1.
 
     ## Plotting parameters
     plot_res = 32

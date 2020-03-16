@@ -44,7 +44,8 @@ def solve_rectangle(_config):
     (u, p) = TrialFunctions(W)
     (v, q) = TestFunctions(W)
     f = Constant((0.0, 0.0))
-    a = inner(grad(u), grad(v))*dx + div(v)*p*dx + q*div(u)*dx
+    mu = Constant(_config['mu'])
+    a = mu*inner(grad(u), grad(v))*dx + div(v)*p*dx + q*div(u)*dx
     l = inner(f, v)*dx
 
     # Form for use in constructing preconditioner matrix
