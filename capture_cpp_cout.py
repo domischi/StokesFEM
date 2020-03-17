@@ -25,4 +25,5 @@ def capture_cpp_cout(f):
     os.dup2(stdout, 1)
     os.close(pipe_out)
     os.close(pipe_in)
+    os.close(stdout)
     return ret, ret_txt
