@@ -26,7 +26,7 @@ def cfg():
     degree_fem_pressure = degree_fem_velocity-1
 
     ## Geometry parameters
-    AR = 1.
+    AR = .75
     L = 3
     res = 50
     bar_width=.1
