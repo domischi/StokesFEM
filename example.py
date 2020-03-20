@@ -31,6 +31,7 @@ def cfg():
     res = 50
     bar_width=.1
     krylov_method = "minres" ## alternatively use tfqrm
+    v_scale = 1.
 
     ## Boundary
     no_slip_top_bottom = False

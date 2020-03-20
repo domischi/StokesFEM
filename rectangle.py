@@ -29,7 +29,7 @@ def solve_rectangle(_config):
     W = FunctionSpace(mesh, TH) ## on the mesh
 
     # Boundaries
-    velocity_to_center = Expression(("-x[0]", "-x[1]"), degree=2)
+    velocity_to_center = Expression(("-x[0]*v", "-x[1]*v"), v = Constant(_config['v_scale']), degree=2)
     bcs = []
     bcs.append(DirichletBC(W.sub(0), velocity_to_center, lambda x, on_boundary: cross(x, on_boundary, AR, bar_width)))
 

@@ -64,7 +64,7 @@ def plot_fluid(u,_config, already_sampled_values = None, fix_frame=True):
     else:
         cmap = 'binary'
     if _config['plot_type'] == 'quiver':
-        p=plt.quiver(X,Y, U,V, C, cmap=cmap, pivot='mid', scale=10)
+        p=plt.quiver(X,Y, U,V, C, cmap=cmap, pivot='mid')
     elif _config['plot_type'] == 'streamplot':
         p=plt.streamplot(X,Y, U,V, color=C, cmap=cmap)
     else:
