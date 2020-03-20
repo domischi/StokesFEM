@@ -13,7 +13,7 @@ def inner_noslip(x, on_boundary, AR, R        ): return x[0]>-R and x[0]< R and 
 
 def solve_rectangle(_config):
     if _config['res']>80:
-        print('There is probably something wrong, calling solve_rectangle with a resolution above 200... Exiting')
+        print('There is probably something wrong, calling solve_rectangle with a resolution above 80... Exiting')
         sys.exit()
     AR = _config['AR']
     L = _config['L']
