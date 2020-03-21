@@ -12,17 +12,24 @@ def top_bottom  (x, on_boundary, L            ): return x[1] > L - DOLFIN_EPS or
 def inner_noslip(x, on_boundary, AR, R        ): return x[0]>-R and x[0]< R and x[1]>-AR*R and x[1]<R
 
 def solve_rectangle(_config):
-    if _config['res']>80:
-        print('There is probably something wrong, calling solve_rectangle with a resolution above 80... Exiting')
+    if _config['res_iterations']>20:
+        print('There is probably something wrong, calling solve_rectangle with a res_itertions larger than 20... Exiting')
         sys.exit()
     AR = _config['AR']
     L = _config['L']
     bar_width = _config['bar_width']
 
     mesh = RectangleMesh(Point(-L,-L),Point(L,L), _config['res'], _config['res'], 'left/right')
-#mesh = mshr.generate_mesh(mshr.Rectangle(Point(-L,-L),Point(L,L)), res)
+    for i in range(_config['res_iterations']):
+        cell_markers = MeshFunction("bool", mesh, 2)
+        cell_markers.set_all(False)
+        for cell in cells(mesh):
+            mp = cell.midpoint().array()
+            if mp[0]>-1.2 and mp[0]<1.2 and  mp[1]>-1.2 and mp[1]<1.2:
+                cell_markers[cell]=True
+        mesh = refine(mesh, cell_markers)
 
-# Build function space
+    # Build function space
     P2 = VectorElement("Lagrange", mesh.ufl_cell(), _config['degree_fem_velocity']) ## For the velocity
     P1 = FiniteElement("Lagrange", mesh.ufl_cell(), _config['degree_fem_pressure']) ## For the pressure
     TH = P2 * P1 ## Taylor-Hood elements
@@ -63,8 +70,8 @@ def solve_rectangle(_config):
         outstring = outstring1 if len(outstring1)>=len(outstring2) else outstring2
         del outstring1,outstring2
         if "Warning: Found no facets matching domain for boundary condition." in outstring:
-            _config['res'] += 10
-            print(f"Boundary conditions cannot be implemented. Retrying with a higher res (res={_config['res']})")
+            _config['res_iterations'] += 1
+            print(f"Boundary conditions cannot be implemented. Retrying with a higher adaptivity")
             return solve_rectangle(_config)
         else:
             print('There was an error in assemble_system. The output of FeniCS:')

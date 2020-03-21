@@ -28,7 +28,8 @@ def cfg():
     ## Geometry parameters
     AR = .75
     L = 3
-    res = 50
+    res = 30
+    res_iterations = 1
     bar_width=.1
     krylov_method = "minres" ## alternatively use tfqrm
     v_scale = 1.
