@@ -35,6 +35,7 @@ def cfg():
     v_scale = 1.
 
     ## Boundary
+    diagonal_bc = True
     no_slip_top_bottom = False
     no_slip_left_right = False
     no_slip_center_size = .2
