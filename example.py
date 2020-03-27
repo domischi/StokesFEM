@@ -26,21 +26,25 @@ def cfg():
     degree_fem_pressure = degree_fem_velocity-1
 
     ## Geometry parameters
-    AR = .75
-    L = 3
-    res = 30
-    res_iterations = 1
+    AR = .8
+    L = 8
+    res = 50
+    res_iterations = 2
     bar_width=.1
     krylov_method = "minres" ## alternatively use tfqrm
     v_scale = 1.
 
     ## Boundary
-    diagonal_bc = True
-    no_slip_top_bottom = False
-    no_slip_left_right = False
+    diagonal_bc = False
+    no_slip_top_bottom = True
+    no_slip_left_right = True
     no_penetration_top_bottom = False
     no_penetration_left_right = False
-    no_slip_center_size = .2
+    no_slip_center_size = .5
+
+    ## Force Fields
+    rectangular_ff = False
+    diagonal_ff = True
 
     ## Fluid parameters
     mu=1.
@@ -48,7 +52,7 @@ def cfg():
     ## Plotting parameters
     plot_res = 32
     plot_type = 'quiver'
-    color_scheme = 'io'
+    color_scheme = 'vabs'
     plot_rectangle = True
     plot_cross = True
 
