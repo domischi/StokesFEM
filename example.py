@@ -45,6 +45,7 @@ def cfg():
     ## Force Fields
     rectangular_ff = False
     diagonal_ff = True
+    Fscale = 1
 
     ## Fluid parameters
     mu=1.

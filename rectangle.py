@@ -67,11 +67,11 @@ def solve_rectangle(_config):
     if _config['rectangular_ff']:
         inward_vector = Expression(('-x[0]', '-x[1]'), degree = 2)
         domain = Expression('x[0]>-1 and x[0]< 1 and x[1]>-AR and x[1]<AR', degree = 1, AR = _config['AR'])
-        f = inward_vector * domain
+        f = inward_vector * domain* Constant(_config['Fscale'])
     elif _config['diagonal_ff']:
         inward_vector = Expression(('-x[0]', '-x[1]'), degree = 2)
         domain = Expression('(abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width) or (abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width)', degree = 1, AR = _config['AR'], bar_width = _config['bar_width'])
-        f = inward_vector * domain
+        f = inward_vector * domain * Constant(_config['Fscale'])
 
     mu = Constant(_config['mu'])
     a = mu*inner(grad(u), grad(v))*dx + div(v)*p*dx + q*div(u)*dx
