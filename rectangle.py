@@ -13,8 +13,9 @@ def top_bottom  (x, on_boundary, L            ): return x[1] > L * (1-DOLFIN_EPS
 def inner_noslip(x, on_boundary, AR, R        ): return x[0]>-R and x[0]< R and x[1]>-AR*R and x[1]<R
 
 def solve_rectangle(_config):
-    if _config['res_iterations']>20:
-        print('There is probably something wrong, calling solve_rectangle with a res_itertions larger than 20... Exiting')
+    max_res_iterations = 5
+    if _config['res_iterations']>max_res_iterations:
+        print(f'There is probably something wrong, calling solve_rectangle with a res_itertions larger than {max_res_iterations}... Exiting')
         sys.exit()
     AR = _config['AR']
     L = _config['L']
