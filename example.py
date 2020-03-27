@@ -50,6 +50,7 @@ def cfg():
     mu=1.
 
     ## Plotting parameters
+    Lplot = 2
     plot_res = 32
     plot_type = 'quiver'
     color_scheme = 'vabs'
