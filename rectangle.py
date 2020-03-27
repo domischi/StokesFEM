@@ -50,6 +50,12 @@ def solve_rectangle(_config):
     if _config['no_slip_left_right']:
         noslip = Constant((0.0, 0.0))
         bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: left_right(x, on_boundary, L)))
+    # No penetration into wall
+    if (not _config['no_slip_top_bottom']) and _config['no_penetration_top_bottom']:
+        bcs.append(DirichletBC(W.sub(0).sub(1), Constant(0.), lambda x, on_boundary: top_bottom(x, on_boundary, L)))
+    if (not _config['no_slip_left_right']) and _config['no_penetration_left_right']:
+        bcs.append(DirichletBC(W.sub(0).sub(1), Constant(0.), lambda x, on_boundary: left_right(x, on_boundary, L)))
+    # No-slip center
     if _config['no_slip_center_size']>0:
         noslip = Constant((0.0, 0.0))
         bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: inner_noslip(x, on_boundary, AR, _config['no_slip_center_size'])))
