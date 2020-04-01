@@ -7,7 +7,7 @@ import pickle as pkl
 import mshr
 import sys
 import time
-from illustration import sample_velocity, plot_fluid
+from illustration import sample_velocity, plot_fluid, plot_pressure
 from capture_cpp_cout import capture_cpp_cout
 from rectangle import solve_rectangle
 import numpy as np
@@ -72,4 +72,6 @@ def main(_config):
             pkl.dump(vals,f)
         ex.add_artifact(pickle_filename)
     figure_filename = plot_fluid(u, _config, already_sampled_values=vals)
+    ex.add_artifact(figure_filename)
+    figure_filename = plot_pressure(p, _config)
     ex.add_artifact(figure_filename)

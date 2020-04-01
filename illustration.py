@@ -80,3 +80,33 @@ def plot_fluid(u,_config, already_sampled_values = None, fix_frame=True):
     plt.savefig(filename)
     plt.close(fig)
     return filename
+
+def plot_pressure(p,_config, fix_frame=True):
+    fig = plt.figure(figsize=(6,5))
+    plt.title('Fluids')
+    filename = f'/tmp/fem-pressure-{int(time.time())}.png'
+    L = _config['Lplot']
+    res = _config['plot_res']
+    if _config['plot_rectangle']:
+        resb = 128
+        Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
+        ind=get_domain(active_rect, Xb,Yb, _config)
+        plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
+    if _config['plot_cross']:
+        resb = 128
+        Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
+        ind=get_domain(cross, Xb,Yb, _config)
+        plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
+    X, Y = np.meshgrid(np.linspace(-L,L,res,res),np.linspace(-L,L,res,res))
+    C = np.ones_like(Y)
+    for i in range(len(Y)):
+        for j in range(len(Y[1])):
+            C[i,j]=p(X[i,j],Y[i,j])
+    ret = plt.pcolormesh(X,Y,C, cmap='viridis', alpha=.8, edgecolor='none')
+    plt.colorbar(ret)
+    if fix_frame:
+        plt.xlim([-L,L])
+        plt.ylim([-L,L])
+    plt.savefig(filename)
+    plt.close(fig)
+    return filename
