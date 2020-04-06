@@ -107,4 +107,4 @@ def solve_rectangle(_config):
 
     # Get sub-functions
     u, p = U.split()
-    return u,p
+    return u, p, mesh

@@ -60,11 +60,18 @@ def cfg():
 
     ## Saving behavior
     save_sampled_fluid_field = True
+    save_mesh = True
 
 
 @ex.automain
 def main(_config):
-    u, p = solve_rectangle(_config)
+    u, p, mesh = solve_rectangle(_config)
+    if _config['save_mesh']:
+        pickle_filename = f'/tmp/fem-mesh-{int(time.time())}.pkl'
+        with open(pickle_filename, 'wb') as f:
+            pkl.dump(mesh.coordinates(),f)
+        ex.add_artifact(pickle_filename)
+
     vals = sample_velocity(u, _config)
     if _config['save_sampled_fluid_field']:
         pickle_filename = f'/tmp/fem-vals-{int(time.time())}.pkl'
