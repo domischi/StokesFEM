@@ -3,7 +3,7 @@ from sacred import Experiment, SETTINGS
 from sacred.observers import FileStorageObserver, MongoObserver
 from sacred.utils import apply_backspaces_and_linefeeds
 from dolfin import *
-import pickle as pkl
+import json
 import mshr
 import sys
 import time
@@ -67,18 +67,19 @@ def cfg():
 def main(_config):
     u, p, mesh = solve_rectangle(_config)
     if _config['save_mesh']:
-        pickle_filename = f'/tmp/fem-mesh-{int(time.time())}.pkl'
-        with open(pickle_filename, 'wb') as f:
-            pkl.dump(mesh.coordinates(),f)
-        ex.add_artifact(pickle_filename)
+        filename = f'/tmp/fem-mesh-{int(time.time())}.json'
+        with open(filename, 'w') as f:
+            json.dump(mesh.coordinates().tolist(),f)
+        ex.add_artifact(filename)
 
-    vals = sample_velocity(u, _config)
+    X,Y,U,V = sample_velocity(u, _config)
     if _config['save_sampled_fluid_field']:
-        pickle_filename = f'/tmp/fem-vals-{int(time.time())}.pkl'
-        with open(pickle_filename, 'wb') as f:
-            pkl.dump(vals,f)
-        ex.add_artifact(pickle_filename)
-    figure_filename = plot_fluid(u, _config, already_sampled_values=vals)
+        filename = f'/tmp/fem-vals-{int(time.time())}.json'
+        with open(filename, 'w') as f:
+            d = {'X': X.tolist(), 'Y': Y.tolist(), 'U': U.tolist(), 'V': V.tolist()}
+            json.dump(d,f)
+        ex.add_artifact(filename)
+    figure_filename = plot_fluid(u, _config, already_sampled_values=(X,Y,U,V))
     ex.add_artifact(figure_filename)
     figure_filename = plot_pressure(p, _config)
     ex.add_artifact(figure_filename)
