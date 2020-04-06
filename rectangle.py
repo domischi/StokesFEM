@@ -27,7 +27,7 @@ def solve_rectangle(_config):
         cell_markers.set_all(False)
         for cell in cells(mesh):
             mp = cell.midpoint().array()
-            if mp[0]>-1.2 and mp[0]<1.2 and  mp[1]>-1.2 and mp[1]<1.2:
+            if mp[0]>-1.2 and mp[0]<1.2 and  mp[1]>-1.2*AR and mp[1]<1.2*AR:
                 cell_markers[cell]=True
         mesh = refine(mesh, cell_markers)
 
