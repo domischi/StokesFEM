@@ -44,7 +44,8 @@ def cfg():
 
     ## Force Fields
     rectangular_ff = False
-    diagonal_ff = True
+    diagonal_ff = False
+    corner_ff = True
     Fscale = 1
 
     ## Fluid parameters
@@ -56,7 +57,7 @@ def cfg():
     plot_type = 'quiver'
     color_scheme = 'vabs'
     plot_rectangle = True
-    plot_cross = True
+    plot_cross = False
 
     ## Saving behavior
     save_sampled_fluid_field = True
