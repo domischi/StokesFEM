@@ -76,8 +76,10 @@ def main(_config):
     X,Y,U,V = sample_velocity(u, _config)
     if _config['save_sampled_fluid_field']:
         filename = f'/tmp/fem-vals-{int(time.time())}.json'
+        Xp,Yp,Up,Vp = sample_velocity(u, _config, L=_config['Lplot'])
         with open(filename, 'w') as f:
-            d = {'X': X.tolist(), 'Y': Y.tolist(), 'U': U.tolist(), 'V': V.tolist()}
+            d = {'X' : X .tolist(), 'Y' : Y .tolist(), 'U' : U .tolist(), 'V' : V .tolist(),
+                 'Xp': Xp.tolist(), 'Yp': Yp.tolist(), 'Up': Up.tolist(), 'Vp': Vp.tolist()}
             json.dump(d,f)
         ex.add_artifact(filename)
     figure_filename = plot_fluid(u, _config, already_sampled_values=(X,Y,U,V))
