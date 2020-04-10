@@ -35,9 +35,12 @@ def sample_velocity(u, _config, L=None):
             V[i,j]=uv[1]
     return X,Y,U,V
 
-def plot_fluid(u,_config, already_sampled_values = None, fix_frame=True):
+def plot_fluid(u,_config, already_sampled_values = None, fix_frame=True, title=None):
     fig = plt.figure(figsize=(5,5))
-    plt.title('Fluids')
+    if title is None:
+        plt.title('Fluids')
+    else:
+        plt.title(title)
     filename = f'/tmp/fem-res-{int(time.time())}.png'
     L = _config['Lplot']
     if _config['plot_rectangle']:
