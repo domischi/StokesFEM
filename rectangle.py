@@ -34,14 +34,22 @@ def get_function_space(_config, mesh):
     TH = P2 * P1 ## Taylor-Hood elements
     return FunctionSpace(mesh, TH) ## on the mesh
 
-def get_bcs(_config, W):
+def get_rectangular_bcs(_config, W):
     AR = _config['AR']
-    L = _config['L']
     bcs = []
     # Diagonal BC
     if _config['diagonal_bc']:
         velocity_to_center = Expression(("-x[0]*v", "-x[1]*v"), v = Constant(_config['v_scale']), degree=2)
         bcs.append(DirichletBC(W.sub(0), velocity_to_center, lambda x, on_boundary: cross(x, on_boundary, AR, bar_width)))
+    # No-slip center
+    if _config['no_slip_center_size']>0:
+        noslip = Constant((0.0, 0.0))
+        bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: inner_noslip(x, on_boundary, AR, _config['no_slip_center_size'])))
+    return bcs
+
+def get_general_bcs(_config, W):
+    bcs = []
+    L = _config['L']
     # No-slip boundary conditions
     if _config['no_slip_top_bottom']:
         noslip = Constant((0.0, 0.0))
@@ -54,10 +62,6 @@ def get_bcs(_config, W):
         bcs.append(DirichletBC(W.sub(0).sub(1), Constant(0.), lambda x, on_boundary: top_bottom(x, on_boundary, L)))
     if (not _config['no_slip_left_right']) and _config['no_penetration_left_right']:
         bcs.append(DirichletBC(W.sub(0).sub(0), Constant(0.), lambda x, on_boundary: left_right(x, on_boundary, L)))
-    # No-slip center
-    if _config['no_slip_center_size']>0:
-        noslip = Constant((0.0, 0.0))
-        bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: inner_noslip(x, on_boundary, AR, _config['no_slip_center_size'])))
     return bcs
 
 def get_load_vector(_config):
@@ -77,17 +81,13 @@ def get_load_vector(_config):
         f = inward_vector * domain * Constant(_config['Fscale'])
     return f
 
-
-
-
-def solve_rectangle(_config):
-
+def assemble_rectangular_system(_config):
     res_iterations = _config['initial_res_iterations']
     while True: ## Check if sufficient resolution
         mesh = get_rectangular_mesh(_config, res_iterations)
 
         W = get_function_space(_config, mesh)
-        bcs = get_bcs(_config, W)
+        bcs = get_general_bcs(_config, W) + get_rectangular_bcs(_config, W)
         f = get_load_vector(_config)
 
         (u, p) = TrialFunctions(W)
@@ -117,6 +117,12 @@ def solve_rectangle(_config):
                 print('There was an error in assemble_system. The output of FeniCS:')
                 raise RuntimeError(outstring)
         break
+    return mesh, W, A, P, bb
+
+
+def solve_rectangle(_config):
+    # Assemble system
+    mesh, W, A, P, bb = assemble_rectangular_system(_config)
 
     # Create Krylov solver and AMG preconditioner
     solver = KrylovSolver(_config['krylov_method'], "amg")
