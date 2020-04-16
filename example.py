@@ -29,7 +29,8 @@ def cfg():
     AR = .8
     L = 8
     res = 50
-    res_iterations = 2
+    initial_res_iterations = 3
+    initial_res_iterations = 5
     bar_width=.1
     krylov_method = "minres" ## alternatively use tfqrm
     v_scale = 1.

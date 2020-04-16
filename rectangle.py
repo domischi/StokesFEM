@@ -13,17 +13,11 @@ def left_right  (x, on_boundary, L            ): return x[0] > L * (1-DOLFIN_EPS
 def top_bottom  (x, on_boundary, L            ): return x[1] > L * (1-DOLFIN_EPS) or x[1] < L * (-1+DOLFIN_EPS)
 def inner_noslip(x, on_boundary, AR, R        ): return x[0]>-R and x[0]< R and x[1]>-AR*R and x[1]<R
 
-def solve_rectangle(_config):
-    max_res_iterations = 5
-    if _config['res_iterations']>max_res_iterations:
-        print(f'There is probably something wrong, calling solve_rectangle with a res_itertions larger than {max_res_iterations}... Exiting')
-        sys.exit()
+def get_rectangular_mesh(_config, res_iterations):
     AR = _config['AR']
     L = _config['L']
-    bar_width = _config['bar_width']
-
     mesh = RectangleMesh(Point(-L,-L),Point(L,L), _config['res'], _config['res'], 'left/right')
-    for i in range(_config['res_iterations']):
+    for i in range(res_iterations):
         cell_markers = MeshFunction("bool", mesh, 2)
         cell_markers.set_all(False)
         for cell in cells(mesh):
@@ -31,14 +25,18 @@ def solve_rectangle(_config):
             if mp[0]>-1.2 and mp[0]<1.2 and  mp[1]>-1.2*AR and mp[1]<1.2*AR:
                 cell_markers[cell]=True
         mesh = refine(mesh, cell_markers)
+    return mesh
 
+def get_function_space(_config, mesh):
     # Build function space
     P2 = VectorElement("Lagrange", mesh.ufl_cell(), _config['degree_fem_velocity']) ## For the velocity
     P1 = FiniteElement("Lagrange", mesh.ufl_cell(), _config['degree_fem_pressure']) ## For the pressure
     TH = P2 * P1 ## Taylor-Hood elements
-    W = FunctionSpace(mesh, TH) ## on the mesh
+    return FunctionSpace(mesh, TH) ## on the mesh
 
-    # Boundaries
+def get_bcs(_config, W):
+    AR = _config['AR']
+    L = _config['L']
     bcs = []
     # Diagonal BC
     if _config['diagonal_bc']:
@@ -60,10 +58,10 @@ def solve_rectangle(_config):
     if _config['no_slip_center_size']>0:
         noslip = Constant((0.0, 0.0))
         bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: inner_noslip(x, on_boundary, AR, _config['no_slip_center_size'])))
+    return bcs
 
+def get_load_vector(_config):
     # Define variational problem
-    (u, p) = TrialFunctions(W)
-    (v, q) = TestFunctions(W)
     f = Constant((0.0, 0.0))
     if _config['rectangular_ff']:
         inward_vector = Expression(('-x[0]', '-x[1]'), degree = 2)
@@ -77,28 +75,48 @@ def solve_rectangle(_config):
         inward_vector = Expression(('-x[0]', '-x[1]'), degree = 2)
         domain = Expression('(abs(abs(x[0])-1)<bar_width and abs(abs(x[1])-AR) < bar_width)', degree = 1, AR = _config['AR'], bar_width = _config['bar_width'])
         f = inward_vector * domain * Constant(_config['Fscale'])
+    return f
 
-    mu = Constant(_config['mu'])
-    a = mu*inner(grad(u), grad(v))*dx + div(v)*p*dx + q*div(u)*dx
-    l = inner(f, v)*dx
 
-    # Form for use in constructing preconditioner matrix
-    b = inner(grad(u), grad(v))*dx + p*q*dx
 
-    # Assemble system
-    (A, bb),   outstring1 = capture_cpp_cout(lambda : assemble_system(a, l, bcs))
-    (P, btmp), outstring2 = capture_cpp_cout(lambda : assemble_system(b, l, bcs))
-    if len(outstring1) > 0 or len(outstring2)>0:
-        print('There was an issue in the assemble_system function:')
-        outstring = outstring1 if len(outstring1)>=len(outstring2) else outstring2
-        del outstring1,outstring2
-        if "Warning: Found no facets matching domain for boundary condition." in outstring:
-            _config['res_iterations'] += 1
-            print(f"Boundary conditions cannot be implemented. Retrying with a higher adaptivity")
-            return solve_rectangle(_config)
-        else:
-            print('There was an error in assemble_system. The output of FeniCS:')
-            print(outstring)
+
+def solve_rectangle(_config):
+
+    res_iterations = _config['initial_res_iterations']
+    while True: ## Check if sufficient resolution
+        mesh = get_rectangular_mesh(_config, res_iterations)
+
+        W = get_function_space(_config, mesh)
+        bcs = get_bcs(_config, W)
+        f = get_load_vector(_config)
+
+        (u, p) = TrialFunctions(W)
+        (v, q) = TestFunctions(W)
+        mu = Constant(_config['mu'])
+        a = mu*inner(grad(u), grad(v))*dx + div(v)*p*dx + q*div(u)*dx
+        l = inner(f, v)*dx
+
+        # Form for use in constructing preconditioner matrix
+        b = inner(grad(u), grad(v))*dx + p*q*dx
+
+        # Assemble system
+        (A, bb),   outstring1 = capture_cpp_cout(lambda : assemble_system(a, l, bcs))
+        (P, btmp), outstring2 = capture_cpp_cout(lambda : assemble_system(b, l, bcs))
+        if len(outstring1) > 0 or len(outstring2)>0:
+            print('There was an issue in the assemble_system function:')
+            outstring = outstring1 if len(outstring1)>=len(outstring2) else outstring2
+            del outstring1,outstring2
+            if "Warning: Found no facets matching domain for boundary condition." in outstring:
+                res_iterations += 1
+                max_res_iterations = _config['max_res_iterations']
+                if res_iterations>max_res_iterations:
+                    raise RuntimeError(f'There is probably something wrong, calling solve_rectangle with a res_itertions larger than {max_res_iterations}... Exiting')
+                print(f"Boundary conditions cannot be implemented. Retrying with a higher adaptivity")
+                continue
+            else:
+                print('There was an error in assemble_system. The output of FeniCS:')
+                raise RuntimeError(outstring)
+        break
 
     # Create Krylov solver and AMG preconditioner
     solver = KrylovSolver(_config['krylov_method'], "amg")
