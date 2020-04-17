@@ -3,15 +3,14 @@ import mshr
 import sys
 from capture_cpp_cout import capture_cpp_cout
 import matplotlib.pyplot as plt
+from fem import *
 
 def active_rect (x, on_boundary, AR, bar_width): return x[0]>-1 and x[0]< 1 and x[1]>-AR and x[1]<AR
 def diagonal_up (x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width ## rising diagonal
 def diagonal_dw (x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width ## lowering diagonal
 def cross       (x, on_boundary, AR, bar_width): return active_rect(x, on_boundary, AR, bar_width) and (diagonal_up(x, on_boundary, AR, bar_width) or diagonal_dw(x, on_boundary, AR, bar_width))
 def corner      (x, on_boundary, AR, bar_width): return abs(abs(x[0])-1)<bar_width and abs(abs(x[0])-AR)<bar_width
-def left_right  (x, on_boundary, L            ): return x[0] > L * (1-DOLFIN_EPS) or x[0] < L * (-1+DOLFIN_EPS)
-def top_bottom  (x, on_boundary, L            ): return x[1] > L * (1-DOLFIN_EPS) or x[1] < L * (-1+DOLFIN_EPS)
-def inner_noslip(x, on_boundary, AR, R        ): return x[0]>-R and x[0]< R and x[1]>-AR*R and x[1]<R
+def inner_noslip_rectangular(x, on_boundary, AR, R): return x[0]>-R and x[0]< R and x[1]>-AR*R and x[1]<R
 
 def get_rectangular_mesh(_config, res_iterations):
     AR = _config['AR']
@@ -27,13 +26,6 @@ def get_rectangular_mesh(_config, res_iterations):
         mesh = refine(mesh, cell_markers)
     return mesh
 
-def get_function_space(_config, mesh):
-    # Build function space
-    P2 = VectorElement("Lagrange", mesh.ufl_cell(), _config['degree_fem_velocity']) ## For the velocity
-    P1 = FiniteElement("Lagrange", mesh.ufl_cell(), _config['degree_fem_pressure']) ## For the pressure
-    TH = P2 * P1 ## Taylor-Hood elements
-    return FunctionSpace(mesh, TH) ## on the mesh
-
 def get_rectangular_bcs(_config, W):
     AR = _config['AR']
     bcs = []
@@ -44,25 +36,9 @@ def get_rectangular_bcs(_config, W):
     # No-slip center
     if _config['no_slip_center_size']>0:
         noslip = Constant((0.0, 0.0))
-        bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: inner_noslip(x, on_boundary, AR, _config['no_slip_center_size'])))
+        bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: inner_noslip_rectangular(x, on_boundary, AR, _config['no_slip_center_size'])))
     return bcs
 
-def get_general_bcs(_config, W):
-    bcs = []
-    L = _config['L']
-    # No-slip boundary conditions
-    if _config['no_slip_top_bottom']:
-        noslip = Constant((0.0, 0.0))
-        bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: top_bottom(x, on_boundary, L)))
-    if _config['no_slip_left_right']:
-        noslip = Constant((0.0, 0.0))
-        bcs.append(DirichletBC(W.sub(0), noslip, lambda x, on_boundary: left_right(x, on_boundary, L)))
-    # No penetration into wall
-    if (not _config['no_slip_top_bottom']) and _config['no_penetration_top_bottom']:
-        bcs.append(DirichletBC(W.sub(0).sub(1), Constant(0.), lambda x, on_boundary: top_bottom(x, on_boundary, L)))
-    if (not _config['no_slip_left_right']) and _config['no_penetration_left_right']:
-        bcs.append(DirichletBC(W.sub(0).sub(0), Constant(0.), lambda x, on_boundary: left_right(x, on_boundary, L)))
-    return bcs
 
 def get_load_vector(_config):
     # Define variational problem
@@ -118,22 +94,3 @@ def assemble_rectangular_system(_config):
                 raise RuntimeError(outstring)
         break
     return mesh, W, A, P, bb
-
-
-def solve_rectangle(_config):
-    # Assemble system
-    mesh, W, A, P, bb = assemble_rectangular_system(_config)
-
-    # Create Krylov solver and AMG preconditioner
-    solver = KrylovSolver(_config['krylov_method'], "amg")
-
-    # Associate operator (A) and preconditioner matrix (P)
-    solver.set_operators(A, P)
-
-    # Solve
-    U = Function(W)
-    solver.solve(U.vector(), bb)
-
-    # Get sub-functions
-    u, p = U.split()
-    return u, p, mesh

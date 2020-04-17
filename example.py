@@ -9,7 +9,8 @@ import sys
 import time
 from illustration import sample_velocity, plot_fluid, plot_pressure
 from capture_cpp_cout import capture_cpp_cout
-from rectangle import solve_rectangle
+from geometries.rectangle import assemble_rectangular_system
+from fem import solve_stokes
 import numpy as np
 import sys
 
@@ -26,8 +27,9 @@ def cfg():
     degree_fem_pressure = degree_fem_velocity-1
 
     ## Geometry parameters
-    AR = .8
-    L = 8
+    Geometry = 'rectangle'
+    AR = .4
+    L = 5
     res = 50
     initial_res_iterations = 3
     initial_res_iterations = 5
@@ -53,7 +55,7 @@ def cfg():
     mu=1.
 
     ## Plotting parameters
-    Lplot = 2
+    Lplot = 3
     plot_res = 32
     plot_type = 'quiver'
     color_scheme = 'vabs'
@@ -67,7 +69,13 @@ def cfg():
 
 @ex.automain
 def main(_config):
-    u, p, mesh = solve_rectangle(_config)
+    if _config['Geometry'] == 'rectangle':
+        assemble_system = assemble_rectangular_system
+        title = f"AR={_config['AR']:.3f}"
+    else:
+        raise RuntimeError(f"Did not recognize geometry {_config['Geometry']}. Aborting.")
+
+    u, p, mesh = solve_stokes(_config, assemble_system)
     if _config['save_mesh']:
         filename = f'/tmp/fem-mesh-{int(time.time())}.json'
         with open(filename, 'w') as f:
@@ -83,7 +91,7 @@ def main(_config):
                  'Xp': Xp.tolist(), 'Yp': Yp.tolist(), 'Up': Up.tolist(), 'Vp': Vp.tolist()}
             json.dump(d,f)
         ex.add_artifact(filename)
-    figure_filename = plot_fluid(u, _config, already_sampled_values=(X,Y,U,V))
+    figure_filename = plot_fluid(u, _config, already_sampled_values=(X,Y,U,V), title = title)
     ex.add_artifact(figure_filename)
     figure_filename = plot_pressure(p, _config)
     ex.add_artifact(figure_filename)
