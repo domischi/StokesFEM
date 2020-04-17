@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from geometries.rectangle import cross, active_rect
+from geometries.rectangle import cross_rect, active_rect
 import time
 
 def get_io_colors(X,Y, U,V, _config):

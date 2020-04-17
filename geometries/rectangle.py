@@ -8,7 +8,7 @@ from fem import *
 def active_rect (x, on_boundary, AR, bar_width): return x[0]>-1 and x[0]< 1 and x[1]>-AR and x[1]<AR
 def diagonal_up (x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width ## rising diagonal
 def diagonal_dw (x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width ## lowering diagonal
-def cross       (x, on_boundary, AR, bar_width): return active_rect(x, on_boundary, AR, bar_width) and (diagonal_up(x, on_boundary, AR, bar_width) or diagonal_dw(x, on_boundary, AR, bar_width))
+def cross_rect  (x, on_boundary, AR, bar_width): return active_rect(x, on_boundary, AR, bar_width) and (diagonal_up(x, on_boundary, AR, bar_width) or diagonal_dw(x, on_boundary, AR, bar_width))
 def corner      (x, on_boundary, AR, bar_width): return abs(abs(x[0])-1)<bar_width and abs(abs(x[0])-AR)<bar_width
 def inner_noslip_rectangular(x, on_boundary, AR, R): return x[0]>-R and x[0]< R and x[1]>-AR*R and x[1]<R
 
@@ -32,7 +32,7 @@ def get_rectangular_bcs(_config, W):
     # Diagonal BC
     if _config['diagonal_bc']:
         velocity_to_center = Expression(("-x[0]*v", "-x[1]*v"), v = Constant(_config['v_scale']), degree=2)
-        bcs.append(DirichletBC(W.sub(0), velocity_to_center, lambda x, on_boundary: cross(x, on_boundary, AR, bar_width)))
+        bcs.append(DirichletBC(W.sub(0), velocity_to_center, lambda x, on_boundary: cross_rect(x, on_boundary, AR, _config['bar_width'])))
     # No-slip center
     if _config['no_slip_center_size']>0:
         noslip = Constant((0.0, 0.0))
