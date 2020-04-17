@@ -59,8 +59,9 @@ def cfg():
     plot_res = 32
     plot_type = 'quiver'
     color_scheme = 'vabs'
-    plot_rectangle = True
+    plot_active = False
     plot_cross = False
+    plot_corner = False
 
     ## Saving behavior
     save_sampled_fluid_field = True
@@ -72,6 +73,9 @@ def main(_config):
     if _config['Geometry'] == 'rectangle':
         assemble_system = assemble_rectangular_system
         title = f"AR={_config['AR']:.3f}"
+    elif _config['Geometry'] == 'hexagon':
+        assemble_system = assemble_hexagon_system
+        title = f"Hexagon"
     else:
         raise RuntimeError(f"Did not recognize geometry {_config['Geometry']}. Aborting.")
 

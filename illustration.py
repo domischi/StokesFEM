@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from geometries.rectangle import cross_rect, active_rect
+from geometries.hexagon import active_hexagon, corner_hexagon, cross_hexagon
 import time
 
 def get_io_colors(X,Y, U,V, _config):
@@ -41,11 +42,24 @@ def plot_active_areas(ax, _config):
     if _config['plot_active']:
         resb = 128
         Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
-        ind=get_domain(active_rect, Xb,Yb, _config)
+        if  _config['Geometry']=='rectangle':
+            active_domain = lambda x: active_rect(x, False, _config['AR'], 0.)
+        elif  _config['Geometry']=='hexagon':
+            active_domain = active_hexagon
+        else:
+            raise RuntimeError("Unrecognized geometry in plot_pressure: {_config['Geometry']}")
+        ind=get_domain(active_domain, Xb,Yb, _config)
+        print(active_domain)
         plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
     if _config['plot_cross']:
         resb = 128
         Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
+        if  _config['Geometry']=='rectangle':
+            cross = lambda x: cross_rect(x,False, AR=_config['AR'], bar_width = _config['bar_width'])
+        elif  _config['Geometry']=='hexagon':
+            cross = lambda x: cross_hexagon(x, width = _config['bar_width'])
+        else:
+            raise RuntimeError("Unrecognized geometry in plot_pressure: {_config['Geometry']}")
         ind=get_domain(cross, Xb,Yb, _config)
         plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
     if _config['plot_corner']:
