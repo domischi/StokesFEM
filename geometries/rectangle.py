@@ -86,7 +86,7 @@ def assemble_rectangular_system(_config):
                 res_iterations += 1
                 max_res_iterations = _config['max_res_iterations']
                 if res_iterations>max_res_iterations:
-                    raise RuntimeError(f'There is probably something wrong, calling solve_rectangle with a res_itertions larger than {max_res_iterations}... Exiting')
+                    raise RuntimeError(f"There is probably something wrong, calling assemble_rectangular_system with a res_itertions={res_iterations} larger than {max_res_iterations}... Exiting")
                 print(f"Boundary conditions cannot be implemented. Retrying with a higher adaptivity")
                 continue
             else:
