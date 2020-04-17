@@ -18,7 +18,7 @@ def get_domain(f,X,Y, _config):
     ind=np.zeros_like(X)
     for i in range(len(X)):
         for j in range(len(X[0])):
-            if f((X[i,j], Y[i,j]), False, _config['AR'], _config['bar_width']):
+            if f((X[i,j], Y[i,j])):
                 ind[i,j]=1
     return ind
 
@@ -35,15 +35,10 @@ def sample_velocity(u, _config, L=None):
             V[i,j]=uv[1]
     return X,Y,U,V
 
-def plot_fluid(u,_config, already_sampled_values = None, fix_frame=True, title=None):
-    fig = plt.figure(figsize=(5,5))
-    if title is None:
-        plt.title('Fluids')
-    else:
-        plt.title(title)
-    filename = f'/tmp/fem-res-{int(time.time())}.png'
-    L = _config['Lplot']
-    if _config['plot_rectangle']:
+def plot_active_areas(ax, _config):
+    plt.sca(ax)
+    L = _config['L']
+    if _config['plot_active']:
         resb = 128
         Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
         ind=get_domain(active_rect, Xb,Yb, _config)
@@ -53,6 +48,27 @@ def plot_fluid(u,_config, already_sampled_values = None, fix_frame=True, title=N
         Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
         ind=get_domain(cross, Xb,Yb, _config)
         plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
+    if _config['plot_corner']:
+        resb = 128
+        Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
+        if  _config['Geometry']=='rectangle':
+            raise NotImplementedError('Corner plotting for rectangle not implemented')
+        elif  _config['Geometry']=='hexagon':
+            corner = lambda x: corner_hexagon(x, _config['bar_width'])
+        else:
+            raise RuntimeError("Unrecognized geometry in plot_pressure: {_config['Geometry']}")
+        ind=get_domain(corner, Xb,Yb, _config)
+        plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
+
+def plot_fluid(u,_config, already_sampled_values = None, fix_frame=True, title=None):
+    fig = plt.figure(figsize=(5,5))
+    if title is None:
+        plt.title('Fluids')
+    else:
+        plt.title(title)
+    filename = f'/tmp/fem-res-{int(time.time())}.png'
+    L = _config['Lplot']
+    plot_active_areas(plt.gca(), _config)
     if _config['L'] == _config['Lplot']:
         if already_sampled_values == None:
             X, Y, U, V = sample_velocity(u, _config)
@@ -90,16 +106,7 @@ def plot_pressure(p,_config, fix_frame=True):
     filename = f'/tmp/fem-pressure-{int(time.time())}.png'
     L = _config['Lplot']
     res = _config['plot_res']
-    if _config['plot_rectangle']:
-        resb = 128
-        Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
-        ind=get_domain(active_rect, Xb,Yb, _config)
-        plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
-    if _config['plot_cross']:
-        resb = 128
-        Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
-        ind=get_domain(cross, Xb,Yb, _config)
-        plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
+    plot_active_areas(plt.gca(), _config)
     X, Y = np.meshgrid(np.linspace(-L,L,res,res),np.linspace(-L,L,res,res))
     C = np.ones_like(Y)
     for i in range(len(Y)):
