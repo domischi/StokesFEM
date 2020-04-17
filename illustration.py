@@ -68,7 +68,7 @@ def plot_active_areas(ax, _config):
         if  _config['Geometry']=='rectangle':
             raise NotImplementedError('Corner plotting for rectangle not implemented')
         elif  _config['Geometry']=='hexagon':
-            corner = lambda x: corner_hexagon(x, _config['bar_width'])
+            corner = lambda x: corner_hexagon(x, _config['bar_width'], _config['hexagon_rotation'])
         else:
             raise RuntimeError("Unrecognized geometry in plot_pressure: {_config['Geometry']}")
         ind=get_domain(corner, Xb,Yb, _config)

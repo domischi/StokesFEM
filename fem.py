@@ -31,7 +31,7 @@ def solve_stokes(_config, assemble_system):
     mesh, W, A, P, bb = assemble_system(_config)
     # Create Krylov solver and AMG preconditioner
     solver = KrylovSolver(_config['krylov_method'], "amg")
-    solver.parameters.update( { 'absolute_tolerance' : 1e-9, 'relative_tolerance' : 1e-9, 'maximum_iterations' : 1000, }) 
+    solver.parameters.update( { 'absolute_tolerance' : 1e-9, 'relative_tolerance' : 1e-9, 'maximum_iterations' : 1000, })
 
     # Associate operator (A) and preconditioner matrix (P)
     solver.set_operators(A, P)

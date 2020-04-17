@@ -29,6 +29,7 @@ def cfg():
     ## Geometry parameters
     Geometry = 'rectangle'
     AR = .4
+    #hexagon_rotation = 0.
     L = 5
     res = 50
     initial_res_iterations = 3

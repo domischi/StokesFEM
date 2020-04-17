@@ -17,13 +17,20 @@ def hexagon(x, R):
            (( np.sqrt(3)*x[0]+x[1] >-R*np.sqrt(3))) and \
            ((-np.sqrt(3)*x[0]+x[1] < R*np.sqrt(3))) and \
            ((-np.sqrt(3)*x[0]+x[1] >-R*np.sqrt(3)))
-def corner_hexagon (x, width):
-    return ((x[0]-1  )**2+(x[1]-        0)**2<width**2) or \
-           ((x[0]-1/2)**2+(x[1]-sqrt(3)/2)**2<width**2) or \
-           ((x[0]-1/2)**2+(x[1]+sqrt(3)/2)**2<width**2) or \
-           ((x[0]+1  )**2+(x[1]-        0)**2<width**2) or \
-           ((x[0]+1/2)**2+(x[1]-sqrt(3)/2)**2<width**2) or \
-           ((x[0]+1/2)**2+(x[1]+sqrt(3)/2)**2<width**2)
+def _corner_hexagon1(x, width, a): return ((x[0]-np.cos(0*np.pi/3+a))**2+(x[1]-np.sin(0*np.pi/3+a))**2<width**2)
+def _corner_hexagon2(x, width, a): return ((x[0]-np.cos(1*np.pi/3+a))**2+(x[1]-np.sin(1*np.pi/3+a))**2<width**2)
+def _corner_hexagon3(x, width, a): return ((x[0]-np.cos(2*np.pi/3+a))**2+(x[1]-np.sin(2*np.pi/3+a))**2<width**2)
+def _corner_hexagon4(x, width, a): return ((x[0]-np.cos(3*np.pi/3+a))**2+(x[1]-np.sin(3*np.pi/3+a))**2<width**2)
+def _corner_hexagon5(x, width, a): return ((x[0]-np.cos(4*np.pi/3+a))**2+(x[1]-np.sin(4*np.pi/3+a))**2<width**2)
+def _corner_hexagon6(x, width, a): return ((x[0]-np.cos(5*np.pi/3+a))**2+(x[1]-np.sin(5*np.pi/3+a))**2<width**2)
+
+def corner_hexagon(x, width, a):
+    return _corner_hexagon1(x, width, a) or \
+           _corner_hexagon2(x, width, a) or \
+           _corner_hexagon3(x, width, a) or \
+           _corner_hexagon4(x, width, a) or \
+           _corner_hexagon5(x, width, a) or \
+           _corner_hexagon6(x, width, a)
 def active_hexagon (x): return hexagon(x,1)
 def inner_noslip_hexagon(x, R): return hexagon(x, R)
 def cross_hexagon (x, width):
@@ -36,6 +43,7 @@ def cross_hexagon (x, width):
 
 def get_hexagon_mesh(_config, res_iterations):
     L = _config['L']
+
     mesh = RectangleMesh(Point(-L,-L),Point(L,L), _config['res'], _config['res'], 'crossed')
     for i in range(res_iterations):
         cell_markers = MeshFunction("bool", mesh, 2)
@@ -65,19 +73,20 @@ def get_hexagonal_load_vector(_config):
     f = Constant((0.0, 0.0))
     if _config['corner_ff']:
         inward_vector = Expression(('-x[0]', '-x[1]'), degree = 2)
-        domain = Expression('    (pow(x[0]-1  ,2)+pow(x[1]-        0,2)<pow(w,2))\
-                              or (pow(x[0]-1/2,2)+pow(x[1]-sqrt(3)/2,2)<pow(w,2))\
-                              or (pow(x[0]-1/2,2)+pow(x[1]+sqrt(3)/2,2)<pow(w,2))\
-                              or (pow(x[0]+1  ,2)+pow(x[1]-        0,2)<pow(w,2))\
-                              or (pow(x[0]+1/2,2)+pow(x[1]-sqrt(3)/2,2)<pow(w,2))\
-                              or (pow(x[0]+1/2,2)+pow(x[1]+sqrt(3)/2,2)<pow(w,2))',
-                            degree = 1, w = _config['bar_width'])
+        domain = Expression('     (pow(x[0]-cos(0*pi/3+alpha),2) + pow(x[1]-sin(0*pi/3+alpha),2)<pow(w,2))\
+                               or (pow(x[0]-cos(1*pi/3+alpha),2) + pow(x[1]-sin(1*pi/3+alpha),2)<pow(w,2))\
+                               or (pow(x[0]-cos(2*pi/3+alpha),2) + pow(x[1]-sin(2*pi/3+alpha),2)<pow(w,2))\
+                               or (pow(x[0]-cos(3*pi/3+alpha),2) + pow(x[1]-sin(3*pi/3+alpha),2)<pow(w,2))\
+                               or (pow(x[0]-cos(4*pi/3+alpha),2) + pow(x[1]-sin(4*pi/3+alpha),2)<pow(w,2))\
+                               or (pow(x[0]-cos(5*pi/3+alpha),2) + pow(x[1]-sin(5*pi/3+alpha),2)<pow(w,2))',
+                            degree = 1, w = _config['bar_width'], alpha = _config['hexagon_rotation'])
         f = inward_vector * domain * Constant(_config['Fscale'])
     return f
 
 def assemble_hexagon_system(_config):
     res_iterations = _config['initial_res_iterations']
     while True: ## Check if sufficient resolution
+        assert(_config['hexagon_rotation']==0.)
         mesh = get_hexagon_mesh(_config, res_iterations)
 
         W = get_function_space(_config, mesh)
