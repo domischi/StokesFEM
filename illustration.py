@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from geometries.rectangle import cross_rect, active_rect
 from geometries.hexagon import active_hexagon, corner_hexagon, cross_hexagon
