@@ -39,7 +39,7 @@ def sample_velocity(u, _config, L=None):
 
 def plot_active_areas(ax, _config):
     plt.sca(ax)
-    L = _config['L']
+    L = _config['Lplot']
     if _config['plot_active']:
         resb = 128
         Xb, Yb = np.meshgrid(np.linspace(-L,L,resb,resb),np.linspace(-L,L,resb,resb))
