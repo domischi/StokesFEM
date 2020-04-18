@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from geometries.rectangle import cross_rect, active_rect
 from geometries.hexagon import active_hexagon, corner_hexagon, cross_hexagon
+from geometries.isosceles import active_isosceles, corner_isosceles
 import time
 
 def get_io_colors(X,Y, U,V, _config):
@@ -46,10 +47,11 @@ def plot_active_areas(ax, _config):
             active_domain = lambda x: active_rect(x, False, _config['AR'], 0.)
         elif  _config['Geometry']=='hexagon':
             active_domain = active_hexagon
+        elif  _config['Geometry']=='isosceles':
+            active_domain = lambda x: active_isosceles(x, _config['AR'])
         else:
-            raise RuntimeError("Unrecognized geometry in plot_pressure: {_config['Geometry']}")
+            raise RuntimeError("Unrecognized geometry in plot_active_areas: {_config['Geometry']}")
         ind=get_domain(active_domain, Xb,Yb, _config)
-        print(active_domain)
         plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
     if _config['plot_cross']:
         resb = 128
@@ -58,8 +60,10 @@ def plot_active_areas(ax, _config):
             cross = lambda x: cross_rect(x,False, AR=_config['AR'], bar_width = _config['bar_width'])
         elif  _config['Geometry']=='hexagon':
             cross = lambda x: cross_hexagon(x, width = _config['bar_width'])
+        elif  _config['Geometry']=='isosceles':
+            raise NotImplementedError("Did not implmement a plot_cross function for geometry {_config['Geometry']}")
         else:
-            raise RuntimeError("Unrecognized geometry in plot_pressure: {_config['Geometry']}")
+            raise RuntimeError("Unrecognized geometry in plot_active_areas: {_config['Geometry']}")
         ind=get_domain(cross, Xb,Yb, _config)
         plt.pcolormesh(Xb,Yb,ind, cmap='Greys', alpha=.2, edgecolor='none')
     if _config['plot_corner']:
@@ -69,6 +73,8 @@ def plot_active_areas(ax, _config):
             raise NotImplementedError('Corner plotting for rectangle not implemented')
         elif  _config['Geometry']=='hexagon':
             corner = lambda x: corner_hexagon(x, _config['bar_width'], _config['hexagon_rotation'])
+        elif  _config['Geometry']=='isosceles':
+            corner = lambda x: corner_isosceles(x, _config['AR'] ,_config['bar_width'])
         else:
             raise RuntimeError("Unrecognized geometry in plot_pressure: {_config['Geometry']}")
         ind=get_domain(corner, Xb,Yb, _config)

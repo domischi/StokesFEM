@@ -10,11 +10,14 @@ import time
 from illustration import sample_velocity, plot_fluid, plot_pressure
 from capture_cpp_cout import capture_cpp_cout
 from geometries.rectangle import assemble_rectangular_system
+from geometries.hexagon import assemble_hexagon_system
+from geometries.isosceles import assemble_isosceles_system
 from fem import solve_stokes
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
 
-ex = Experiment('Diagonal FEM')
+ex = Experiment('Stokes FEM')
 ex.observers.append(MongoObserver.create())
 SETTINGS.CONFIG.READ_ONLY_CONFIG = False ## Needed if the mesh needs to be refined to define BC
 SETTINGS.CAPTURE_MODE = 'sys'
@@ -30,6 +33,7 @@ def cfg():
     Geometry = 'rectangle'
     AR = .4
     #hexagon_rotation = 0.
+    #force_scaling = 'const'
     L = 5
     res = 50
     initial_res_iterations = 3
@@ -73,14 +77,20 @@ def cfg():
 def main(_config):
     if _config['Geometry'] == 'rectangle':
         assemble_system = assemble_rectangular_system
+        assert('AR' in _config.keys())
         title = f"AR={_config['AR']:.3f}"
     elif _config['Geometry'] == 'hexagon':
         assemble_system = assemble_hexagon_system
         title = f"Hexagon"
+    elif _config['Geometry'] == 'isosceles':
+        assemble_system = assemble_isosceles_system
+        title = f"Isosceles Triangle, AR: {_config['AR']:.2f}"
+
     else:
         raise RuntimeError(f"Did not recognize geometry {_config['Geometry']}. Aborting.")
 
     u, p, mesh = solve_stokes(_config, assemble_system)
+
     if _config['save_mesh']:
         filename = f'/tmp/fem-mesh-{int(time.time())}.json'
         with open(filename, 'w') as f:
