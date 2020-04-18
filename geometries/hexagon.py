@@ -79,7 +79,7 @@ def get_hexagonal_load_vector(_config):
                                or (pow(x[0]-cos(3*pi/3+alpha),2) + pow(x[1]-sin(3*pi/3+alpha),2)<pow(w,2))\
                                or (pow(x[0]-cos(4*pi/3+alpha),2) + pow(x[1]-sin(4*pi/3+alpha),2)<pow(w,2))\
                                or (pow(x[0]-cos(5*pi/3+alpha),2) + pow(x[1]-sin(5*pi/3+alpha),2)<pow(w,2))',
-                            degree = 1, w = _config['bar_width'], alpha = _config['hexagon_rotation'])
+                            degree = 2, w = _config['bar_width'], alpha = _config['hexagon_rotation'])
         f = inward_vector * domain * Constant(_config['Fscale'])
     return f
 
