@@ -96,6 +96,11 @@ def main(_config):
         with open(filename, 'w') as f:
             json.dump(mesh.coordinates().tolist(),f)
         ex.add_artifact(filename)
+        filename = f'/tmp/fem-mesh-{int(time.time())}.png'
+        plot(mesh)
+        plt.savefig(filename)
+        ex.add_artifact(filename)
+        plt.close()
 
     X,Y,U,V = sample_velocity(u, _config)
     if _config['save_sampled_fluid_field']:
