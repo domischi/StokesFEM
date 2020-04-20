@@ -53,7 +53,7 @@ def get_load_vector(_config):
         f = inward_vector * domain * Constant(_config['Fscale'])
     elif _config['corner_ff']:
         inward_vector = Expression(('-x[0]', '-x[1]'), degree = 2)
-        domain = Expression('(abs(abs(x[0])-1)<bar_width and abs(abs(x[1])-AR) < bar_width)', degree = 1, AR = _config['AR'], bar_width = _config['bar_width'])
+        domain = Expression('(abs(abs(x[0])-1)<bar_width and abs(abs(x[1])-AR) < bar_width)', degree = 2, AR = _config['AR'], bar_width = _config['bar_width'])
         f = inward_vector * domain * Constant(_config['Fscale'])
     return f
 
