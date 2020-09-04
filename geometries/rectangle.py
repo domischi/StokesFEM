@@ -9,7 +9,7 @@ def active_rect (x, on_boundary, AR, bar_width): return x[0]>-1 and x[0]< 1 and 
 def diagonal_up (x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]-AR) < bar_width ## rising diagonal
 def diagonal_dw (x, on_boundary, AR, bar_width): return abs(x[0])>DOLFIN_EPS and abs(x[1]/x[0]+AR) < bar_width ## lowering diagonal
 def cross_rect  (x, on_boundary, AR, bar_width): return active_rect(x, on_boundary, AR, bar_width) and (diagonal_up(x, on_boundary, AR, bar_width) or diagonal_dw(x, on_boundary, AR, bar_width))
-def corner      (x, on_boundary, AR, bar_width): return abs(abs(x[0])-1)<bar_width and abs(abs(x[0])-AR)<bar_width
+def corner      (x, on_boundary, AR, bar_width, R=1): return abs(abs(x[0])-R)<bar_width and abs(abs(x[0])-R*AR)<bar_width
 def inner_noslip_rectangular(x, on_boundary, AR, R): return x[0]>-R and x[0]< R and x[1]>-AR*R and x[1]<AR*R
 
 def get_rectangular_mesh(_config, res_iterations):
@@ -53,7 +53,7 @@ def get_load_vector(_config):
         f = inward_vector * domain * Constant(_config['Fscale'])
     elif _config['corner_ff']:
         inward_vector = Expression(('-x[0]', '-x[1]'), degree = 2)
-        domain = Expression('(abs(abs(x[0])-1)<bar_width and abs(abs(x[1])-AR) < bar_width)', degree = 2, AR = _config['AR'], bar_width = _config['bar_width'])
+        domain = Expression('(abs(abs(x[0])-R)<bar_width and abs(abs(x[1])-R*AR) < bar_width)', degree = 2, AR = _config['AR'], bar_width = _config['bar_width'], R=_config.get("corner_force_distance", 1.))
         f = inward_vector * domain * Constant(_config['Fscale'])
     return f
 
